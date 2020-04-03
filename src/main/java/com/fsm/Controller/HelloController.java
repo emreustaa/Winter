@@ -12,7 +12,7 @@ public class HelloController {
     }
 
     @Mapping(type = TYPE.GET)
-    public String hello() {
+    public String index() {
         return "Hello";
     }
     //public String hello(String message){return "hello " + message;}

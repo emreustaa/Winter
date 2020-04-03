@@ -45,12 +45,6 @@ public class Utils {
 
     //dönüş tipi optional yapılabilir
     public Method getAction(Class<?> controller, String action, Class<?>... parameterTypes) {
-//        try {
-//            return HelloController.class.getMethod("hello", null);
-//        } catch (NoSuchMethodException e) {
-//            e.printStackTrace();
-//        }
-//        return null;
         Method m = null;
         try {
             m = Optional.
@@ -105,16 +99,14 @@ public class Utils {
                         cls -> cls.isAnnotationPresent(Controller.class));
     }
 
-   public Object invoke2() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        String controller = "HelloController", action = "hello";
-        Class<?> clss = PathScanner.getInstance()
-                .getClassesOf("com.fsm")
+   public Object invoke2(Path path) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        Class<?> clss = controllers
                 .stream()
-                .filter(cls -> cls.getSimpleName().equals(controller))
+                .filter(cls -> cls.getSimpleName().equals(path.controller))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("no method found"));
 
-        Method toInvoke = clss.getMethod(action, null);
+        Method toInvoke = clss.getMethod(path.action, null);
         toInvoke.setAccessible(true);
         Object o = toInvoke.invoke(
                 Optional.of(clss.
