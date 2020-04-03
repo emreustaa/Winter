@@ -1,4 +1,4 @@
-package com.fsm.Utlis;
+package com.fsm.Utils;
 
 public class ConstructorParams {
 

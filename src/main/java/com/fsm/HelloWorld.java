@@ -1,15 +1,15 @@
 package com.fsm;
 
-import com.fsm.Utlis.InvokeParams;
-import com.fsm.Utlis.InvokeResult;
-import com.fsm.Utlis.Utils;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fsm.Utils.InvokeParams;
+import com.fsm.Utils.Utils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 public class HelloWorld extends AbstractHandler {
 
@@ -18,35 +18,45 @@ public class HelloWorld extends AbstractHandler {
     public void handle(String target,
                        Request baseRequest,
                        HttpServletRequest request,
-                       HttpServletResponse response) throws IOException,
-            ServletException {
+                       HttpServletResponse response) throws IOException {
 
-        //GET RESPONSE
 
-        InvokeResult result = getResponse(target.substring(1));
+        Object invokeResult = getResponse(target);
+        ObjectMapper mapper = new ObjectMapper();
+        String result = mapper.writeValueAsString(invokeResult);
 
         response.setContentType(
                 getContentType("text/html", "utf-8"));
 
         response.setStatus(HttpServletResponse.SC_OK);
 
-        String responseText = "<h1>" + result.getResultType().cast(result.getResult()) + "</h1>";
-
+        String responseText = String.format("<h1>%s</h1>", result);
+        //String responseText = getResponse(target).getResult();
         response.getWriter().println(responseText);
 
         baseRequest.setHandled(true);
 
     }
 
-    InvokeResult getResponse(String target) {
+    Object getResponse(String target) {
         //if (!hasQueryParam(target)) {
-          return invokeRelatedMapping(target, new InvokeParams());
-       // }
+        return invokeRelatedMapping(target, new InvokeParams());
+        // }
     }
 
-    InvokeResult invokeRelatedMapping(String targetMethod, InvokeParams params) {
-           return Utils.getInstance()
-                    .invokeMethod(targetMethod, params);
+    Object invokeRelatedMapping(String target, InvokeParams params) {
+        try {
+            return Utils.getInstance()
+                    .invoke2();
+        } catch (NoSuchMethodException | IllegalAccessException |
+                InvocationTargetException | InstantiationException e) {
+            e.printStackTrace();
+        }
+        return null;
+//           return Utils.getInstance()
+//                    .invokeMethod(
+//                            new Path(target,
+//                                    target), params);
     }
 
     boolean hasQueryParam(String target) {
