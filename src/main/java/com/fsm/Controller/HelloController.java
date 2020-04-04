@@ -4,14 +4,14 @@ import com.fsm.Annotation.Controller;
 import com.fsm.Annotation.Mapping;
 import com.fsm.Enums.TYPE;
 
-@Controller(path = "/hello")
+@Controller(path = "hello")
 public class HelloController {
 
    public HelloController() {
 
     }
 
-    @Mapping(type = TYPE.GET)
+    @Mapping(path = "index", type = TYPE.GET)
     public String index() {
         return "Hello";
     }

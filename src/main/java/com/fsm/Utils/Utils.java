@@ -18,13 +18,20 @@ public class Utils {
 
     List<Class<?>> controllers = getControllers();
 
+    private List<Class<?>> getControllers() {
+        return PathScanner.getInstance()
+                .getClassesOf("com.fsm",
+                        cls ->
+                                cls.isAnnotationPresent(Controller.class));
+    }
+
     public static Utils getInstance() {
         return u;
     }
 
     public Object invokeMethod(Path path, InvokeParams params) {
         Class<?> controller = getControllerByPath(path.controller);
-        Method toInvoke = getAction(controller, "hello",
+        Method toInvoke = getAction(controller, path.action,
                 params.parameterTypes);
         return invoke(toInvoke, params);
     }
@@ -60,6 +67,7 @@ public class Utils {
     }
 
     private Class<?> getControllerByPath(String path) {
+        System.out.println("path: " + path);
         return controllers.stream()
                 .filter(cls -> cls.getAnnotation(Controller.class).path().equals(path))
                 .findFirst()
@@ -93,27 +101,35 @@ public class Utils {
         return mappings;
     }
 
-    public List<Class<?>> getControllers() {
-        return PathScanner.getInstance()
-                .getClassesOf("com.fsm",
-                        cls -> cls.isAnnotationPresent(Controller.class));
+    public Method getMappingByPath(Class<?> controller, String path) {
+        return List.of(controller.getMethods())
+                .stream()
+                .filter(method -> method.isAnnotationPresent(Mapping.class))
+                .filter(method -> method.getAnnotation(Mapping.class).path().equals(path))
+                .findFirst()
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Method with path: " + path +
+                                        "could not be found in " + controller.getSimpleName()));
     }
 
-   public Object invoke2(Path path) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        Class<?> clss = controllers
-                .stream()
-                .filter(cls -> cls.getSimpleName().equals(path.controller))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("no method found"));
+    public Object invoke2(Path path) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+//        Class<?> clss = controllers
+//                .stream()
+//                .filter(cls -> cls.getSimpleName().equals(path.controller))
+//                .findFirst()
+//                .orElseThrow(() -> new RuntimeException("no method found"));
+        Class<?> cls = getControllerByPath(path.controller);
 
-        Method toInvoke = clss.getMethod(path.action, null);
+        //Method toInvoke = clss.getMethod(path.action, null);
+        Method toInvoke = getMappingByPath(cls, path.action);
         toInvoke.setAccessible(true);
         Object o = toInvoke.invoke(
-                Optional.of(clss.
-                getDeclaredConstructor(null)
-                .newInstance(null))
-                .orElseThrow(() -> new RuntimeException("instance could not be created"))
-                ,null);
+                Optional.of(cls.
+                        getDeclaredConstructor(null)
+                        .newInstance(null))
+                        .orElseThrow(() -> new RuntimeException("instance could not be created"))
+                , null);
         return o;
     }
 
