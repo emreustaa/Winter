@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
-public class HelloWorld extends AbstractHandler {
+public class BaseHandler extends AbstractHandler {
 
 
     @Override
@@ -21,23 +21,21 @@ public class HelloWorld extends AbstractHandler {
                        HttpServletRequest request,
                        HttpServletResponse response) throws IOException {
 
-
-        String pathInfo = request.getPathInfo();
-        Map<String, String[]> paramMap = request.getParameterMap();
-
-        Object invokeResult = paramMap.isEmpty() ?
-                getResponse(pathInfo) :
-                getResponse(pathInfo, paramMap);
+        Object invokeResult = getResult(request);
 
         ObjectMapper mapper = new ObjectMapper();
-        String result = mapper.writeValueAsString(invokeResult);
+
+        String res = mapper.writerWithDefaultPrettyPrinter()
+                .writeValueAsString(invokeResult);
+
+        //String result = mapper.writeValueAsString(invokeResult);
 
         response.setContentType(
                 getContentType("text/html", "utf-8"));
 
         response.setStatus(HttpServletResponse.SC_OK);
 
-        String responseText = String.format("<h1>%s</h1>", result);
+        String responseText = String.format("<h1>%s</h1>", res);
         response.getWriter().println(responseText);
         baseRequest.setHandled(true);
 
@@ -46,10 +44,20 @@ public class HelloWorld extends AbstractHandler {
         //        .forEach((key, val) -> System.out.println(key + ":" + val[0]));
     }
 
+    Object getResult(HttpServletRequest request) {
+        String pathInfo = request.getPathInfo();
+        Map<String, String[]> paramMap = request.getParameterMap();
+
+        return paramMap.isEmpty() ?
+                getResponse(pathInfo) :
+                getResponse(pathInfo, paramMap);
+    }
+
     Path getPath(String path) {
         String[] parts = path.split("/");
-        return parts.length > 2 ? new Path(parts[1], parts[2]) :
-               new Path(parts[1], "index");
+        return parts.length > 2 ?
+                new Path(parts[1], parts[2]) :
+                new Path(parts[1], "index");
     }
 
     Object getResponse(String path) {

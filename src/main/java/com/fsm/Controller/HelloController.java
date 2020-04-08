@@ -3,6 +3,8 @@ package com.fsm.Controller;
 import com.fsm.Annotation.Controller;
 import com.fsm.Annotation.Mapping;
 import com.fsm.Enums.TYPE;
+import com.fsm.Models.Person;
+import com.fsm.Models.PersonRepository;
 
 @Controller(path = "hello")
 public class HelloController {
@@ -15,6 +17,12 @@ public class HelloController {
     public String index() {
         return "Hello";
     }
+
+    @Mapping(path = "person", type = TYPE.GET)
+    public Person getPerson() {
+       return PersonRepository.findById(1);
+    }
+
     //public String hello(String message){return "hello " + message;}
 
 //    public static void main(String[] args) {
