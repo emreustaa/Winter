@@ -12,5 +12,10 @@ public class Main {
 
         server.start();
         server.join();
+
+//        Object o = 1;
+//        System.out.println(Integer.class.equals( o.getClass()));
+
+
     }
 }
