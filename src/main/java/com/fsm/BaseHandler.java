@@ -53,7 +53,6 @@ public class BaseHandler extends AbstractHandler {
     Object getResult(HttpServletRequest request) {
         String pathInfo = request.getPathInfo();
         Map<String, String[]> paramMap = request.getParameterMap();
-        System.out.println(paramMap.toString());
 
         return paramMap.isEmpty() ?
                 getResponse(pathInfo) :
@@ -71,16 +70,16 @@ public class BaseHandler extends AbstractHandler {
     }
 
     Path getPath(String path) {
-        String[] parts = path.split("/");
-        return parts.length > 2 ?
-                new Path(parts[1], parts[2]) :
-                new Path(parts[1], "index");
+        //substring to remove space at the beginning of parts
+        String[] parts = path.substring(1).split("/");
+        return parts.length > 1 ?
+                new Path(parts[0], parts[1]) :
+                new Path(parts[0], "index");
     }
 
     Path getPath(String path, Map<String, String[]> reqParams) {
         Path p = getPath(path);
         Map<String, Object> parameters = getFlattened(reqParams);
-        System.out.println("flattenedMap: " + parameters.toString());
         p.fillParameters(parameters);
         return p;
     }
@@ -88,7 +87,7 @@ public class BaseHandler extends AbstractHandler {
     Map<String, Object> getFlattened(Map<String, String[]> reqParams) {
         return reqParams.entrySet()
                 .stream()
-                .collect(Collectors.toMap(k -> k.getKey(), v -> v.getValue()[0]));
+                .collect(Collectors.toMap(Map.Entry::getKey, v -> v.getValue()[0]));
     }
 
     String getContentType(String type, String charset) {

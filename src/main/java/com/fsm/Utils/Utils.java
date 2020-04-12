@@ -8,9 +8,11 @@ import com.fsm.Annotation.QueryParam;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Utils {
@@ -42,17 +44,6 @@ public class Utils {
                 .orElseThrow(() ->
                         new NoSuchElementException(
                                 "Controller with path: " + path + " not found"));
-    }
-
-    public List<Method> getMappingsOfClass(Class<?> owner) {
-        var mappings = new ArrayList<Method>();
-        for (Method method : owner.getDeclaredMethods()) {
-            method.setAccessible(true);
-            if (method.isAnnotationPresent(Mapping.class)) {
-                mappings.add(method);
-            }
-        }
-        return mappings;
     }
 
     public Method getMappingByPath(Class<?> controller, Path path) {
@@ -89,18 +80,10 @@ public class Utils {
         return true;
     }
 
-    List<String> getParameterNamesOf(Method method) {
-        return List.of(method.getParameters())
-                .stream()
-                .map(param -> param.getName())
-                .collect(Collectors.toList());
-    }
-
     public Object invoke(Path path) {
         Class<?> cls = getControllerByPath(path.controller);
         Method toInvoke = getMappingByPath(cls, path);
         toInvoke.setAccessible(true);
-        System.out.println("method found: " + toInvoke.toString());
         Object[] parameterValues = doTypeConversions(
                 toInvoke.getParameterTypes(),
                 path.parameters.values().toArray());
@@ -123,7 +106,6 @@ public class Utils {
                 newParams[i] = mapper.convertValue(params[lastIndex], types[i]);
             }
         }
-        List.of(newParams).forEach(System.out::println);
         return newParams;
     }
 
@@ -131,6 +113,7 @@ public class Utils {
         return (paramsLength - i) - 1;
     }
 
+    @SuppressWarnings("ConfusingArgumentToVarargsMethod")
     private Object getInstance(Class<?> cls) {
         Object instance = null;
         try {
